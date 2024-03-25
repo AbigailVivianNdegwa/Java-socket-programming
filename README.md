@@ -232,4 +232,22 @@ public class Client{
         }
     }
 }
+
  6. Make sure that the files are saved with the .java extension.
+
+# How to run the codes.
+1. Open the command prompt on four different windows. This is beacuse one of them will be the server and the other three windows will be clients.
+2. Resize them to fit on the screen.
+3. On one window, run the Server file.
+   	To run a hard coded java file, follow the following steps:
+   		1. Open the files folder, go to the program files and click on the Java folder.
+   		2. Open JDK and go to where the bin file is. Copy the path.
+   		3. Go to the command prompt and type path = /copy paste the bin path/
+   		4. Change the directory and copy paste the directory that has the JavaSocketProg folder.
+   		5. To complie use javac.NameOfFile.java
+   		6. To run use java.NameOfFile.
+4. Do the same thing for all the Client windows.
+5. You will be prompted to add user names and once added, it will reflect on the server that a user has connected.
+6. The server will then broadcast the messages to all the clients except the one sending the message.
+
+# HAPPY CODING By Abigail Vivian.
