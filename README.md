@@ -136,6 +136,7 @@ public class ClientHandler implements Runnable{
 		}
 	}
 }
+
  5. Create the Client.java file.
  	The code: 
   import java.io.*;
