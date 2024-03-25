@@ -52,4 +52,183 @@ public class Server{
 	}
 }
 
- 
+ 3. Create the ClientHandler.java file, the rules apply to all, make sure that the name of the file is also similar to the class name.
+    	The code:
+    import java.io.*;
+import java.net.*;
+import java.util.ArrayList;
+
+public class ClientHandler implements Runnable{
+
+	public static ArrayList <ClientHandler> clientHandler = new ArrayList <> ();
+
+	private Socket socket;
+	private BufferedReader bufferedReader;
+	private BufferedWriter bufferedWriter;
+	private String clientUsername;
+
+	public ClientHandler (Socket socket){
+		try {
+			this.socket = socket;
+			this.bufferedWriter = new BufferedWriter (new OutputStreamWriter (socket.getOutputStream ()));
+			this.bufferedReader = new BufferedReader (new InputStreamReader (socket.getInputStream()));
+			this.clientUsername = bufferedReader.readLine();
+			clientHandler.add(this);
+
+			broadcastMessage ("SERVER:" + clientUsername + "has entered the chat!");
+		}
+		catch (IOException e){
+			closeEverything (socket, bufferedReader, bufferedWriter);
+		}
+	}
+
+	@Override
+	public void run(){
+		String messageFromClient;
+
+		while (socket.isConnected()){
+			try {
+				messageFromClient = bufferedReader.readLine();
+				broadcastMessage(messageFromClient);
+			}
+			catch (IOException e){
+				closeEverything( socket, bufferedReader, bufferedWriter);
+				break;
+			}
+		}
+	}
+
+	public void broadcastMessage(String messageToSend){
+		for(ClientHandler clientHandler: clientHandler){
+			try{
+				if(!clientHandler.clientUsername.equals(clientUsername)){
+					clientHandler.bufferedWriter.write(messageToSend);
+					clientHandler.bufferedWriter.newLine();
+					clientHandler.bufferedWriter.flush();
+				}
+			}
+			catch(IOException e){
+				closeEverything(socket, bufferedReader, bufferedWriter);
+			}
+		}
+	}
+
+	public void removeClientHandler(){
+		clientHandler.remove(this);
+		broadcastMessage("SERVER:" + clientUsername + "has left the chat!");
+	}
+
+	public void closeEverything( Socket socket, BufferedReader bufferedReader, BufferedWriter bufferedWriter){
+		removeClientHandler();
+		try{
+			if(bufferedReader != null){
+				bufferedReader.close();
+			}
+			if(bufferedWriter != null){
+				bufferedWriter.close();
+			}
+			if(socket != null){
+				socket.close();
+			}
+		}
+		catch(IOException e){
+			e.printStackTrace();
+		}
+	}
+}
+ 5. Create the Client.java file.
+ 	The code: 
+  import java.io.*;
+import java.net.*;
+import java.util.Scanner;
+
+public class Client{
+	private Socket socket;
+	private BufferedReader bufferedReader;
+	private BufferedWriter bufferedWriter;
+	private String username;
+
+	public Client(Socket socket, String username ){
+		try{
+			this.socket = socket;
+			this.bufferedWriter = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
+			this.bufferedReader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+			this.username = username;
+		}
+		catch (IOException e){
+			closeEverything(socket, bufferedReader, bufferedWriter);
+		}
+	}
+
+	public void sendMessage(){
+		try{
+			bufferedWriter.write(username);
+			bufferedWriter.newLine();
+			bufferedWriter.flush();
+
+			Scanner scanner = new Scanner (System.in);
+			while (socket.isConnected()){
+				String messageToSend = scanner.nextLine();
+				bufferedWriter.write(username+ ":" + messageToSend);
+				bufferedWriter.newLine();
+				bufferedWriter.flush();
+			}
+		}
+		catch(IOException e){
+			closeEverything(socket, bufferedReader, bufferedWriter);
+		}
+	}
+
+	public void listenForMessage(){
+		new Thread (new Runnable(){
+
+			@Override
+			public void run(){
+				String msgFromGroupChat;
+
+				while (socket.isConnected()){
+					try{
+						msgFromGroupChat = bufferedReader.readLine();
+						System.out.println(msgFromGroupChat);
+					}
+					catch(IOException e){
+						closeEverything(socket, bufferedReader, bufferedWriter);
+					}
+				}
+			}
+		}).start();
+	}
+
+	public void closeEverything(Socket socket, BufferedReader bufferedReader, BufferedWriter bufferedWriter){
+		try{
+			if (bufferedReader != null){
+				bufferedReader.close();
+			}
+			if (bufferedWriter != null){
+				bufferedWriter.close();
+			}
+			if (socket != null){
+				socket.close();
+			}
+		}
+		catch(IOException e){
+			e.printStackTrace();
+		}
+	}
+	public static void main(String[] args) {
+        Scanner scanner = new Scanner(System.in);
+        System.out.println("Enter your username for the group chat:");
+        String username = scanner.nextLine();
+        try {
+            Socket socket = new Socket("Localhost", 1234);
+            Client client = new Client(socket, username);
+            client.listenForMessage();
+            client.sendMessage();
+        } catch (UnknownHostException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+}
+ 6. Make sure that the files are saved with the .java extension.
